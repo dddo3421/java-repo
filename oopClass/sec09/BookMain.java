@@ -10,7 +10,7 @@ public class BookMain {
 		
 		bk.show();
 		bk1.show();
-		
+		//bk.book(); 생성자는 객체를 통한 호출불가		
 	}
 
 }
