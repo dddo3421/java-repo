@@ -1,5 +1,7 @@
 package interfacePkg.sec03;
 
+//import interfacePkg.sec02.REmotrControl; 코드 복사에 의해 자동 삽입될 수 있음
+
 public class SmartTelevision implements  Isearchable , RemoteControl {
 	private int volume; // 인스턴스 멤버필드
 
