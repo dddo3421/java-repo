@@ -41,7 +41,7 @@ public class TypeCasting {
  		System.out.println(chrVal);
  		
  		// 강제 타입 변환 시 주의
- 		// 값의 손실 발생 타입 범위 확인해서 형변환 결정
+ 		//값의 손실 발생 타입 범위 확인해서 형변환 결정
  		// 기본타입에 대해서 자바는 객체로 구성해 놓았음
  		// 기본타입객체.MIN_VALUE /기본타입객체.MAX_VALUE
  		// ex. Byte.MIN_VALUE, Int.MAX_VALUE
