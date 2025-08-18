@@ -1,89 +1,102 @@
 package game_project.member;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
+import java.sql.*;
+import java.util.Vector;
+import game_project.util.DBConnect;
 
-//회원 데이터 저장 조회 관리 
-public class DAO implements DAOinterface { 
-    private List<DTO> memberList = new ArrayList<>();
-    private Scanner sc = new Scanner(System.in);
-    private DTO loggedInUser = null;
-    
-    //로그인 성공시 DAO 내부의 loggedInUser 필드에 저장 
-    public void setLoggedInUser(DTO user) {
-        this.loggedInUser = user;
-    }
-    
-    // 로그인된 사용자의 정보를 반환
-    public DTO getLoggedInUser() {
-        return loggedInUser;
-    }
-    
-    //로그인되어 있는지 확인
-    public boolean isLoggedIn() {
-        return loggedInUser != null;
-    }
-    //로그인된 사용자를 로그아웃 처리
-    public void logout() {
-        loggedInUser = null;
-    }
-    
+public class DAO implements DAOinterface {
+
+    // 회원가입: DTO에서 ID, 비밀번호 가져와 MEMBER 테이블에 INSERT
     @Override
-    public void registerMember() {
-        System.out.print("ID 입력: ");
-        String id = sc.nextLine();
+    public boolean registerMember(DTO dto) throws SQLException {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        try {
+            con = DBConnect.getConnection();           // DB 연결
+            String sql = "INSERT INTO MEMBER VALUES(?, ?)";
+            pstmt = con.prepareStatement(sql);         // SQL 실행 준비
+            pstmt.setString(1, dto.getUserId());      // DTO에서 ID 가져오기
+            pstmt.setString(2, dto.getUserPwd());     // DTO에서 PWD 가져오기
+            return pstmt.executeUpdate() > 0;         // 성공 여부 반환
+        } finally {
+            DBConnect.close(con, pstmt);              // 자원 반납
+        }
+    }
 
-        System.out.print("비밀번호 입력: ");
-        String password = sc.nextLine();
-
-        System.out.print("이름 입력: ");
-        String name = sc.nextLine();
-
-        DTO newMember = new DTO(id, password, name);
-
-        // 동일 회원 검사
-        for (DTO member : memberList) {
-            if (member.isSameMember(newMember)) {
-                System.out.println(" 이미 가입된 회원입니다.");
-                return;
+    // 회원 목록 조회: MEMBER 테이블에서 모든 USERID 가져와 Vector에 담아 반환
+    @Override
+    public Vector<DTO> getAllMembers() throws SQLException {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        Vector<DTO> list = new Vector<>();
+        try {
+            con = DBConnect.getConnection();           // DB 연결
+            String sql = "SELECT USERID FROM MEMBER";
+            pstmt = con.prepareStatement(sql);         // SQL 실행 준비
+            rs = pstmt.executeQuery();                 // 결과 가져오기
+            while (rs.next()) {                        // ResultSet 순회
+                list.add(new DTO(rs.getString(1)));    // USERID를 DTO로 저장
             }
-        }
-
-        // 회원 목록에 추가
-        memberList.add(newMember);
-        System.out.println(" 회원가입이 완료되었습니다.");
-    }
-
-    @Override
-    public void showAllMembers() { // 전체 회원목록 보여줌
-        System.out.println(" 등록된 회원 목록:");
-        for (DTO member : memberList) {
-            System.out.println(member);
+            return list;                               // Vector 반환
+        } finally {
+            DBConnect.close(con, pstmt, rs);          // 자원 반납
         }
     }
-    
+
+    // 로그인: 입력받은 ID, PWD로 MEMBER 테이블 조회, 일치하면 DTO 반환
     @Override
-    public DTO findById(String id) { //아이디 찾기
-        for (DTO member : memberList) {
-            if (member.getId().equals(id)) {
-                return member;
+    public DTO login(String id, String pwd) throws SQLException {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        ResultSet rs = null;
+        try {
+            con = DBConnect.getConnection();           // DB 연결
+            String sql = "SELECT USERID FROM MEMBER WHERE USERID=? AND USERPWD=?";
+            pstmt = con.prepareStatement(sql);         // SQL 실행 준비
+            pstmt.setString(1, id);                   // 입력 ID 세팅
+            pstmt.setString(2, pwd);                  // 입력 PWD 세팅
+            rs = pstmt.executeQuery();                 // 결과 가져오기
+            if (rs.next()) {                           // 조회 성공 시
+                return new DTO(rs.getString("USERID"));// DTO 반환
             }
-        }
-        return null;
-    }
-
-    @Override // menu의 7번 숫자 맞추기 통계 보여주는 메서드 
-    public void showGuessStats() {
-        if (loggedInUser != null) {
-            System.out.println("현재 로그인된 사용자: " + loggedInUser.getName());
-            System.out.println("숫자 맞추기 게임 맞힌 횟수: " + loggedInUser.getGuessGameWinCount());
-        } else {
-            System.out.println("로그인되어 있지 않습니다. 먼저 로그인 해주세요.");
+            return null;                               // 조회 실패 시 null
+        } finally {
+            DBConnect.close(con, pstmt, rs);          // 자원 반납
         }
     }
 
-    
-    
-    
+    // 회원 정보 수정: DTO에서 ID, PWD 가져와 MEMBER 테이블 UPDATE
+    @Override
+    public boolean updateMember(DTO dto) throws SQLException {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        try {
+            con = DBConnect.getConnection();           // DB 연결
+            String sql = "UPDATE MEMBER SET USERPWD=? WHERE USERID=?";
+            pstmt = con.prepareStatement(sql);         // SQL 실행 준비
+            pstmt.setString(1, dto.getUserPwd());     // 변경할 비밀번호 세팅
+            pstmt.setString(2, dto.getUserId());      // 대상 ID 세팅
+            return pstmt.executeUpdate() > 0;         // 성공 여부 반환
+        } finally {
+            DBConnect.close(con, pstmt);              // 자원 반납
+        }
+    }
+
+    // 회원 탈퇴: ID와 PWD 확인 후 MEMBER 테이블에서 삭제
+    @Override
+    public boolean deleteMember(String id, String pwd) throws SQLException {
+        Connection con = null;
+        PreparedStatement pstmt = null;
+        try {
+            con = DBConnect.getConnection();           // DB 연결
+            String sql = "DELETE FROM MEMBER WHERE USERID=? AND USERPWD=?";
+            pstmt = con.prepareStatement(sql);         // SQL 실행 준비
+            pstmt.setString(1, id);                   // 대상 ID 세팅
+            pstmt.setString(2, pwd);                  // 입력 PWD 확인용
+            return pstmt.executeUpdate() > 0;         // 성공 여부 반환
+        } finally {
+            DBConnect.close(con, pstmt);              // 자원 반납
+        }
+    }
 }

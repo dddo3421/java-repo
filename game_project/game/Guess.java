@@ -1,16 +1,10 @@
 package game_project.game;
 
-import game_project.member.DTO;
-import game_project.member.Login;
-
 import java.util.Random;
 import java.util.Scanner;
 
+public class Guess { //숫자 알아맞히기 게임
 
-
-public class Guess { //숫자 알아맞추기 게임
-	
-   
     public void guess() {
 
         Scanner sc = new Scanner(System.in);
@@ -19,11 +13,7 @@ public class Guess { //숫자 알아맞추기 게임
         String retry = "y"; // 계속할지 여부
         int rdNum; // 랜덤숫자 
         int Num; // 입력받을 숫자 저장 
-        
-        DTO loginUser = Login.loginUser;
-        
-        
-        
+
         System.out.println("         숫자 알아맞히기 게임          ");
 
         do {
@@ -31,11 +21,9 @@ public class Guess { //숫자 알아맞추기 게임
             System.out.println("=================================");
             System.out.println("어떤 숫자일까요? 알아 맞혀보세요~ (1~10)");
             System.out.println("=================================");
-                       
-            
+
             while (true) {
                 System.out.print("숫자 입력 : ");       
-                
 
                 try {         // 숫자 입력 체크
                     Num = sc.nextInt();
@@ -51,16 +39,9 @@ public class Guess { //숫자 알아맞추기 게임
                     System.out.println("1~10 중에서 골라주세요.");
                     continue;
                 }
-                
 
                 if (rdNum == Num) {		// 입력한 값이 랜덤숫자와 같으면 while 탈출
                     System.out.println("맞혔습니다!");
-                    if (loginUser != null) {
-                        int currentWins = loginUser.getGuessGameWinCount();
-                        loginUser.setGuessGameWinCount(currentWins + 1);
-                        System.out.println(" 현재까지 맞힌 횟수 : " + 						loginUser.getGuessGameWinCount());
-                    }
-                    
                     sc.nextLine(); 
                     break; 
                 } else {
@@ -79,7 +60,7 @@ public class Guess { //숫자 알아맞추기 게임
                 }
             }
 
-        } while (retry.equals("y")); // y 면 숫자 맟추기 계속
+        } while (retry.equals("y")); // y 면 숫자 맞추기 계속
 
         System.out.println("게임을 종료하고 메뉴로 돌아갑니다.");
     }
